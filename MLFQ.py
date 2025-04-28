@@ -89,7 +89,8 @@ class MLFQ:
 
 
 def main():
-    # Create 10 process objects with varying arrival times and burst times
+    # Create 10 processes with varying arrival times and burst times
+    # PID, Arrival Time, Burst Time
     processes = [
         Process(1, 0, 8),
         Process(2, 1, 4),
@@ -131,9 +132,17 @@ def main():
     avg_turnaround = turnaround / len(processes)
     avg_waiting = waiting / len(processes)
 
+    total_completion_time = sum(p.completion for p in processed)
+    total_execution_time = sum(p.burst for p in processed)
+
+    throughput = len(processed)/ max(p.completion for p in processed)
+    cpu_utilization = (total_execution_time / total_completion_time) * 100
+
     print("\nSummary:")
     print(f"\nAverage Turnaround Time: {avg_turnaround:.2f}")
     print(f"Average Waiting Time: {avg_waiting:.2f}")
+    print(f"Throughput: {throughput:.2f} processes/unit")
+    print(f"CPU Utilization: {cpu_utilization:.2f}%")
 
 
 if __name__ == '__main__':
