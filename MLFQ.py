@@ -1,3 +1,5 @@
+import random
+
 class Process:
     def __init__(self, pid, arrival, burst):
         self.pid = pid
@@ -9,11 +11,10 @@ class Process:
 
 
 class MLFQ:
-    def __init__(self, processes, Q0, Q1, Q2):
+    def __init__(self, processes, Q0, Q1):
         self.processes = processes
         self.Q0 = Q0
         self.Q1 = Q1
-        self.Q2 = Q2
 
     def schedule(self):
         # Initialize queues
@@ -28,121 +29,178 @@ class MLFQ:
         # intialize current time
         current_time = 0
         
-        # while there are processes in the queues
+        # while there are processes in the queues or there are processes yet to arrive
         while queue0 or queue1 or queue2 or any(p.arrival > current_time for p in self.processes):
             # Add processes to queue 0 if they have arrived
             for process in self.processes:
                 if process.arrival <= current_time and process.remaining > 0 and process not in queue0 + queue1 + queue2:
                     queue0.append(process)
 
-            # check queue 0
+            # check queue 0 (highest priority)
             if queue0:
                 process = queue0.pop(0)
-                if process.remaining > self.Q0:
-                    process.remaining -= self.Q0
-                    current_time += self.Q0
+                time_slice = min(self.Q0, process.remaining)
+                for t in range(time_slice):
+                    current_time += 1
+                    process.remaining -= 1
+                
+                if process.remaining > 0:
                     queue1.append(process)
                     process.queueLevel = 1
                 else:
-                    current_time += process.remaining
-                    process.remaining = 0
-                    processed.append(process)
                     process.completion = current_time
+                    processed.append(process)
                     process.queueLevel = -1
+                continue
             
-            # check queue 1
+            # Check queue 1
             elif queue1:
                 process = queue1.pop(0)
-                if process.remaining > self.Q1:
-                    process.remaining -= self.Q1
-                    current_time += self.Q1
-                    queue2.append(process)
-                    process.queueLevel = 2
-                else:
-                    current_time += process.remaining
-                    process.remaining = 0
-                    processed.append(process)
-                    process.completion = current_time
-                    process.queueLevel = -1
+                time_slice = min(self.Q1, process.remaining)
+                for t in range(time_slice):
+                    current_time += 1
+                    process.remaining -= 1
 
-            # check queue 2
+                    # Check for preemption (process arrived in queue 0)
+                    for new_process in self.processes:
+                        if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
+                            queue0.append(new_process)
+                            queue0.sort(key=lambda x: x.arrival)  # Order by arrival
+                            queue1.insert(0, process)  # Place current process at the front of queue1
+                            break
+                    else:
+                        continue
+                    # Go back to queue 0 if preempted
+                    continue
+                else:
+                    if process.remaining > 0:
+                        queue2.append(process)
+                        process.queueLevel = 2
+                    else:
+                        process.completion = current_time
+                        processed.append(process)
+                        process.queueLevel = -1
+                continue
+
+            # Check queue 2 (lowest priority)
             elif queue2:
                 process = queue2.pop(0)
-                if process.remaining > self.Q2:
-                    process.remaining -= self.Q2
-                    current_time += self.Q2
-                    queue2.append(process)
-                    process.queueLevel = 2
+                # Run process until completion (FCFS)
+                time_slice = min(self.Q2, process.remaining)
+                while process.remaining > 0:
+                    current_time += 1
+                    process.remaining -= 1
+
+                    # Check for preemption
+                    for new_process in self.processes:
+                        if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
+                            queue0.append(new_process)
+                            queue0.sort(key=lambda x: x.arrival)  # Order by arrival
+                            queue2.insert(0, process)  # Place current process at the front of queue2
+                            break
+                    else:
+                        continue
+                    # Go back to queue 0 if preempted
+                    continue
                 else:
-                    current_time += process.remaining
-                    process.remaining = 0
-                    processed.append(process)
+                    # Process completed
                     process.completion = current_time
+                    processed.append(process)
                     process.queueLevel = -1
+                continue
             
             # all queues are empty, find the next process to arrive
             else:
-                next_process = min((p.arrival for p in self.processes if p.arrival > current_time))
-                current_time = next_process
+                next_process = min((p.arrival for p in self.processes if p.remaining > 0 and p.arrival > current_time), default=None)
+                if next_process is not None:
+                    current_time = next_process
+                else:
+                    break # Exit loop if CPU idle
         
         return processed
-
+    
+def generate_processes(num_processes=10):
+    processes = []
+    for pid in range(1, num_processes + 1):
+        arrival = random.randint(0, 10)  # Random arrival time
+        burst = random.randint(1, 10)     # Random burst time
+        processes.append(Process(pid, arrival, burst))
+    return processes
 
 def main():
-    # Create 10 processes with varying arrival times and burst times
-    # PID, Arrival Time, Burst Time
-    processes = [
-        Process(1, 0, 8),
-        Process(2, 1, 4),
-        Process(3, 2, 9),
-        Process(4, 3, 5),
-        Process(5, 4, 2),
-        Process(6, 5, 6),
-        Process(7, 6, 3),
-        Process(8, 7, 7),
-        Process(9, 8, 10),
-        Process(10, 9, 1)
-    ]
 
     # Define time slices for each queue
     Q0 = 4
-    Q1 = 6
-    Q2 = 8
+    Q1 = 8
 
-    # Create an MLFQ scheduler
-    scheduler = MLFQ(processes, Q0, Q1, Q2)
+    # initialize overall metrics
+    total_turnaround = 0
+    total_waiting = 0
+    total_throughput = 0
+    total_cpu_utilization = 0
+    num_simulations = 10
 
-    # Run the scheduler
-    processed = scheduler.schedule()
+    for x in range(1, num_simulations + 1):
+
+        # Generate random processes
+        processes = generate_processes(10)
+
+        # Create an MLFQ scheduler
+        scheduler = MLFQ(processes, Q0, Q1)
+
+        # Run the scheduler
+        processed = scheduler.schedule()
     
-    turnaround = 0
-    waiting = 0
+        turnaround = 0
+        waiting = 0
 
-    # Print results
-    print(f"{'PID':<5}{'Arrival':<10}{'Burst':<10}{'Completion':<15}{'Turnaround':<15}{'Waiting':<10}")
-    print("-" * 65)
-    for p in processed:
-        turnaround_time = p.completion - p.arrival
-        turnaround += turnaround_time
-        waiting_time = turnaround_time - p.burst
-        waiting += waiting_time
-        # display details
-        print(f"{p.pid:<5}{p.arrival:<10}{p.burst:<10}{p.completion:<15}{turnaround_time:<15}{waiting_time:<10}")
+        # Print results
+        print(f"{'PID':<5}{'Arrival':<10}{'Burst':<10}{'Completion':<15}{'Turnaround':<15}{'Waiting':<10}")
+        print("-"*65)
+        for p in processed:
+            turnaround_time = p.completion - p.arrival
+            turnaround += turnaround_time
+            waiting_time = turnaround_time - p.burst
+            waiting += waiting_time
+            # display details
+            print(f"{p.pid:<5}{p.arrival:<10}{p.burst:<10}{p.completion:<15}{turnaround_time:<15}{waiting_time:<10}")
 
-    avg_turnaround = turnaround / len(processes)
-    avg_waiting = waiting / len(processes)
+        avg_turnaround = turnaround /len(processes)
+        avg_waiting = waiting /len(processes)
 
-    total_completion_time = sum(p.completion for p in processed)
-    total_execution_time = sum(p.burst for p in processed)
+        total_completion_time = sum(p.completion for p in processed)
+        total_execution_time = sum(p.burst for p in processed)
 
-    throughput = len(processed)/ max(p.completion for p in processed)
-    cpu_utilization = (total_execution_time / total_completion_time) * 100
+        throughput = len(processed)/max(p.completion for p in processed)
+        cpu_utilization = (total_execution_time/total_completion_time)*100
 
-    print("\nSummary:")
-    print(f"\nAverage Turnaround Time: {avg_turnaround:.2f}")
-    print(f"Average Waiting Time: {avg_waiting:.2f}")
-    print(f"Throughput: {throughput:.2f} processes/unit")
-    print(f"CPU Utilization: {cpu_utilization:.2f}%")
+        # Metrics
+        total_turnaround += avg_turnaround
+        total_waiting += avg_waiting
+        total_throughput += throughput
+        total_cpu_utilization += cpu_utilization
+
+    
+
+    # print("\nSummary:")
+    # print(f"\nAverage Turnaround Time: {avg_turnaround:.2f}")
+    # print(f"Average Waiting Time: {avg_waiting:.2f}")
+    # print(f"Throughput: {throughput:.2f} processes/unit")
+    # print(f"CPU Utilization: {cpu_utilization:.2f}%")
+
+    # Overall Average Metrics
+    overall_avg_turnaround = total_turnaround/num_simulations
+    overall_avg_waiting = total_waiting/num_simulations
+    overall_avg_throughput = total_throughput/num_simulations
+    overall_avg_cpu_utilization = total_cpu_utilization/num_simulations
+
+    # Print overall summary
+    print("\nOverall Summary (Across All Simulations):")
+    print("="*50)
+    print(f"Average Turnaround Time: {overall_avg_turnaround:.2f}")
+    print(f"Average Waiting Time: {overall_avg_waiting:.2f}")
+    print(f"Average Throughput: {overall_avg_throughput:.2f} processes/unit")
+    print(f"Average CPU Utilization: {overall_avg_cpu_utilization:.2f}%")
 
 
 if __name__ == '__main__':
