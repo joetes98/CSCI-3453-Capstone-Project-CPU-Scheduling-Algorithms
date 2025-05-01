@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 
 data = {
     "Algorithm": ["MLFQ", "MLQ", "EDF"],
-    "Average Turnaround Time": [27.96, 30.72, 11.13],
-    "Average Waiting Time": [22.39, 25.12, 8.14],
-    "Average Throughput": [0.21, 0.1755, 0.34],
-    "Average CPU Utilization (%)": [16.67, 94.27, 98.17]
+    "Average Turnaround Time": [27.89, 30.72, 11.13],
+    "Average Waiting Time": [22.79, 25.12, 8.14],
+    "Average Throughput": [0.20, 0.1755, 0.34],
+    "Average CPU Utilization (%)": [100, 94.27, 98.17]
 }
 
 df = pd.DataFrame(data)

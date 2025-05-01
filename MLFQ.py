@@ -8,6 +8,7 @@ class Process:
         self.remaining = burst
         self.queueLevel = 0
         self.completion = None
+        self.completed = False
 
 
 class MLFQ:
@@ -43,12 +44,19 @@ class MLFQ:
                 for t in range(time_slice):
                     current_time += 1
                     process.remaining -= 1
+
+                    # Add new processes to queue 0 if they arrive
+                    for new_process in self.processes:
+                        if (new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2):
+                            queue0.append(new_process)
+                            
                 
                 if process.remaining > 0:
                     queue1.append(process)
                     process.queueLevel = 1
                 else:
                     process.completion = current_time
+                    process.completed = True
                     processed.append(process)
                     process.queueLevel = -1
                 continue
@@ -57,6 +65,7 @@ class MLFQ:
             elif queue1:
                 process = queue1.pop(0)
                 time_slice = min(self.Q1, process.remaining)
+                preempted = False
                 for t in range(time_slice):
                     current_time += 1
                     process.remaining -= 1
@@ -64,29 +73,31 @@ class MLFQ:
                     # Check for preemption (process arrived in queue 0)
                     for new_process in self.processes:
                         if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
-                            # queue0.append(new_process)
+                            queue0.append(new_process)
                             queue0.sort(key=lambda x: x.arrival)  # Order by arrival
                             queue1.insert(0, process)  # Place current process at the front of queue1
+                            preempted = True
                             break
-                    else:
-                        continue
-                    # Go back to queue 0 if preempted
+                    if preempted:
+                        break
+                if preempted:
                     continue
+                
+                if process.remaining > 0:
+                    queue2.append(process)
+                    process.queueLevel = 2
                 else:
-                    if process.remaining > 0:
-                        queue2.append(process)
-                        process.queueLevel = 2
-                    else:
-                        process.completion = current_time
-                        processed.append(process)
-                        process.queueLevel = -1
+                    process.completion = current_time
+                    process.completed = True
+                    processed.append(process)
+                    process.queueLevel = -1
                 continue
 
             # Check queue 2 (lowest priority)
             elif queue2:
                 process = queue2.pop(0)
+                preempted = False
                 # Run process until completion (FCFS)
-                time_slice = min(self.Q2, process.remaining)
                 while process.remaining > 0:
                     current_time += 1
                     process.remaining -= 1
@@ -94,19 +105,21 @@ class MLFQ:
                     # Check for preemption
                     for new_process in self.processes:
                         if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
-                            # queue0.append(new_process)
+                            queue0.append(new_process)
                             queue0.sort(key=lambda x: x.arrival)  # Order by arrival
                             queue2.insert(0, process)  # Place current process at the front of queue2
+                            preempted = True
                             break
-                    else:
-                        continue
-                    # Go back to queue 0 if preempted
+                    if preempted:
+                        break
+                if preempted:
                     continue
-                else:
-                    # Process completed
-                    process.completion = current_time
-                    processed.append(process)
-                    process.queueLevel = -1
+                
+                # Process completed
+                process.completion = current_time
+                process.completed = True
+                processed.append(process)
+                process.queueLevel = -1
                 continue
             
             # all queues are empty, find the next process to arrive
@@ -122,7 +135,7 @@ class MLFQ:
 def generate_processes(num_processes):
     processes = []
     for pid in range(1, num_processes + 1):
-        arrival = random.randint(0, 50)  # Random arrival time
+        arrival = random.randint(0, 10)  # Random arrival time
         burst = random.randint(1, 10)     # Random burst time
         processes.append(Process(pid, arrival, burst))
     return processes
@@ -130,8 +143,8 @@ def generate_processes(num_processes):
 def main():
 
     # Define time slices for each queue
-    Q0 = 4
-    Q1 = 8
+    Q0 = 2
+    Q1 = 4
 
     # initialize overall metrics
     total_turnaround = 0
