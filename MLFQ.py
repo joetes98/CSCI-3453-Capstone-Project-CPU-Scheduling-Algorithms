@@ -30,7 +30,7 @@ class MLFQ:
         current_time = 0
         
         # while there are processes in the queues or there are processes yet to arrive
-        while queue0 or queue1 or queue2 or any(p.arrival > current_time for p in self.processes):
+        while queue0 or queue1 or queue2 or any(p.remaining > 0 for p in self.processes):
             # Add processes to queue 0 if they have arrived
             for process in self.processes:
                 if process.arrival <= current_time and process.remaining > 0 and process not in queue0 + queue1 + queue2:
@@ -64,7 +64,7 @@ class MLFQ:
                     # Check for preemption (process arrived in queue 0)
                     for new_process in self.processes:
                         if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
-                            queue0.append(new_process)
+                            # queue0.append(new_process)
                             queue0.sort(key=lambda x: x.arrival)  # Order by arrival
                             queue1.insert(0, process)  # Place current process at the front of queue1
                             break
@@ -94,7 +94,7 @@ class MLFQ:
                     # Check for preemption
                     for new_process in self.processes:
                         if new_process.arrival == current_time and new_process.remaining > 0 and new_process not in queue0 + queue1 + queue2:
-                            queue0.append(new_process)
+                            # queue0.append(new_process)
                             queue0.sort(key=lambda x: x.arrival)  # Order by arrival
                             queue2.insert(0, process)  # Place current process at the front of queue2
                             break
@@ -119,10 +119,10 @@ class MLFQ:
         
         return processed
     
-def generate_processes(num_processes=10):
+def generate_processes(num_processes):
     processes = []
     for pid in range(1, num_processes + 1):
-        arrival = random.randint(0, 10)  # Random arrival time
+        arrival = random.randint(0, 50)  # Random arrival time
         burst = random.randint(1, 10)     # Random burst time
         processes.append(Process(pid, arrival, burst))
     return processes
@@ -172,7 +172,7 @@ def main():
         total_execution_time = sum(p.burst for p in processed)
 
         throughput = len(processed)/max(p.completion for p in processed)
-        cpu_utilization = (total_execution_time/total_completion_time)*100
+        cpu_utilization = (total_execution_time/(max(p.completion for p in processed) - min(p.arrival for p in processed)))*100
 
         # Metrics
         total_turnaround += avg_turnaround
@@ -182,11 +182,11 @@ def main():
 
     
 
-    # print("\nSummary:")
-    # print(f"\nAverage Turnaround Time: {avg_turnaround:.2f}")
-    # print(f"Average Waiting Time: {avg_waiting:.2f}")
-    # print(f"Throughput: {throughput:.2f} processes/unit")
-    # print(f"CPU Utilization: {cpu_utilization:.2f}%")
+        print("\nSummary:")
+        print(f"\nAverage Turnaround Time: {avg_turnaround:.2f}")
+        print(f"Average Waiting Time: {avg_waiting:.2f}")
+        print(f"Throughput: {throughput:.2f} processes/unit")
+        print(f"CPU Utilization: {cpu_utilization:.2f}%")
 
     # Overall Average Metrics
     overall_avg_turnaround = total_turnaround/num_simulations
