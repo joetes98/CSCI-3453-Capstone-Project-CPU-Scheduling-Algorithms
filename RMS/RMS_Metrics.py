@@ -1,6 +1,9 @@
 import math
 import random
 
+#Hunter Tanksley
+#Rate Monotonic Scheduling
+
 class Ratemonotonic:
     def __init__(self, taskId, executionTime, period):
         self.taskId = taskId
