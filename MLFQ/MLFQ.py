@@ -41,7 +41,7 @@ class MLFQ:
             if queue0:
                 process = queue0.pop(0)
                 time_slice = min(self.Q0, process.remaining)
-                for t in range(time_slice):
+                for _ in range(time_slice):
                     current_time += 1
                     process.remaining -= 1
 
@@ -59,14 +59,14 @@ class MLFQ:
                     process.completed = True
                     processed.append(process)
                     process.queueLevel = -1
-                continue
+                # continue
             
             # Check queue 1
             elif queue1:
                 process = queue1.pop(0)
                 time_slice = min(self.Q1, process.remaining)
                 preempted = False
-                for t in range(time_slice):
+                for _ in range(time_slice):
                     current_time += 1
                     process.remaining -= 1
 
@@ -91,7 +91,7 @@ class MLFQ:
                     process.completed = True
                     processed.append(process)
                     process.queueLevel = -1
-                continue
+                # continue
 
             # Check queue 2 (lowest priority)
             elif queue2:
@@ -120,7 +120,7 @@ class MLFQ:
                 process.completed = True
                 processed.append(process)
                 process.queueLevel = -1
-                continue
+                # continue
             
             # all queues are empty, find the next process to arrive
             else:
@@ -136,7 +136,7 @@ def generate_processes(num_processes):
     processes = []
     for pid in range(1, num_processes + 1):
         arrival = random.randint(0, 10)  # Random arrival time
-        burst = random.randint(1,10)     # Random burst time
+        burst = random.randint(1, 10)     # Random burst time
         processes.append(Process(pid, arrival, burst))
     return processes
 
@@ -153,7 +153,7 @@ def main():
     total_cpu_utilization = 0
     num_simulations = 10
 
-    for x in range(1, num_simulations + 1):
+    for _ in range(1, num_simulations + 1):
 
         # Generate random processes
         processes = generate_processes(10)
@@ -181,7 +181,7 @@ def main():
         avg_turnaround = turnaround /len(processes)
         avg_waiting = waiting /len(processes)
 
-        total_completion_time = sum(p.completion for p in processed)
+        # total_completion_time = sum(p.completion for p in processed)
         total_execution_time = sum(p.burst for p in processed)
 
         throughput = len(processed)/max(p.completion for p in processed)

@@ -9,10 +9,10 @@ choice = int(input("Enter your choice: "))
 if choice == 1:
     data = {
     "Algorithm": ["MLFQ", "MLQ", "EDF", "RMS"],
-    "Average Turnaround Time": [27.86, 30.72, 11.13, 15.10],
-    "Average Waiting Time": [22.72, 25.12, 8.14, 12.10],
-    "Average Throughput": [0.20, 0.1755, 0.34, 0.2889],
-    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 92.00]
+    "Average Turnaround Time": [27.86, 30.72, 11.13, 43.40],
+    "Average Waiting Time": [22.72, 25.12, 8.14, 19.00],
+    "Average Throughput": [0.20, 0.1755, 0.34, 0.1533],
+    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 100.00]
 }
     df = pd.DataFrame(data)
 
@@ -44,11 +44,11 @@ elif choice == 2:
 
     data = {
     "Algorithm": ["MLFQ", "MLQ", "EDF", "RMS"],
-    "Average Turnaround Time": [27.86, 30.72, 11.13, 15.10],
-    "Average Waiting Time": [22.72, 25.12, 8.14, 12.10],
-    "Average Throughput": [0.20, 0.1755, 0.34, 0.2889],
-    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 92.00]
-    }
+    "Average Turnaround Time": [27.86, 30.72, 11.13, 43.40],
+    "Average Waiting Time": [22.72, 25.12, 8.14, 19.00],
+    "Average Throughput": [0.20, 0.1755, 0.34, 0.1533],
+    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 100.00]
+}
 
     df = pd.DataFrame(data)
 
@@ -73,10 +73,10 @@ elif choice == 3:
     # Input data
     data = {
     "Algorithm": ["MLFQ", "MLQ", "EDF", "RMS"],
-    "Average Turnaround Time": [27.86, 30.72, 11.13, 15.10],
-    "Average Waiting Time": [22.72, 25.12, 8.14, 12.10],
-    "Average Throughput": [0.20, 0.1755, 0.34, 0.2889],
-    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 92.00]
+    "Average Turnaround Time": [27.86, 30.72, 11.13, 43.40],
+    "Average Waiting Time": [22.72, 25.12, 8.14, 19.00],
+    "Average Throughput": [0.20, 0.1755, 0.34, 0.1533],
+    "Average CPU Utilization (%)": [99.57, 94.27, 98.17, 100.00]
 }
     df = pd.DataFrame(data)
 
