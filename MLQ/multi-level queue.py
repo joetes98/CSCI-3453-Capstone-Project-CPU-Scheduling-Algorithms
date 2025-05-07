@@ -1,3 +1,5 @@
+import random
+
 # Define the Process class to represent each CPU task
 class Process:
     def __init__(self, pid, priority, burst_time, queue_level, arrival_time):
